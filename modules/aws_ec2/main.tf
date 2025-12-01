@@ -25,8 +25,25 @@ resource "aws_key_pair" "this" {
   public_key = local.ec2_import_key_content
 }
 
+data "aws_ami" "debian" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["debian-13-amd64-*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+
 resource "aws_instance" "this" {
-  ami                         = local.ec2_ami
+  ami                         = local.ec2_ami != "" ? local.ec2_ami : data.aws_ami.debian.id
   instance_type               = local.ec2_instance_type
   key_name                    = local.ec2_specified_key != "" ? data.aws_key_pair.selected.id : resource.aws_key_pair.this[0].id
   associate_public_ip_address = local.ec2_associate_public_ip_address

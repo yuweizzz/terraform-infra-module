@@ -8,27 +8,10 @@ variable "ec2_instance_type" {
   type        = string
 }
 
-data "aws_ami" "debian" {
-  most_recent = true
-  owners      = ["amazon"]
-  filter {
-    name   = "name"
-    values = ["debian-13-amd64-*"]
-  }
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-}
-
 variable "ec2_ami" {
   description = "ami id of ec2 instance, use debian13 as default value"
   type        = string
-  default     = data.aws_ami.debian.id
+  default     = ""
 }
 
 variable "ec2_associate_public_ip_address" {
