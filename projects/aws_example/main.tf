@@ -42,3 +42,18 @@ module "aws_network" {
     }
   ]
 }
+
+module "aws_ec2" {
+  source = "../../modules/aws_ec2"
+
+  ec2_instance_name = "ec2_001"
+  ec2_instance_type = "t3.medium"
+  ec2_root_volume_size = 50
+  # ec2_specified_key = "ec2_key"
+  ec2_import_key = "ec2_key"
+  ec2_import_key_content = file("${path.module}/secrets/ec2_key.pub")
+  ec2_subnet_id = module.aws_network.private_subnet_ids["ap-southeast-1a"]
+  ec2_security_groups = [
+    module.aws_network.security_group_ids["sg_ssh"]
+  ]
+}
