@@ -12,6 +12,8 @@ locals {
 }
 
 data "aws_key_pair" "selected" {
+  count = local.ec2_specified_key != "" ? 1 : 0
+
   filter {
     name   = "key-name"
     values = [local.ec2_specified_key]
@@ -45,7 +47,7 @@ data "aws_ami" "debian" {
 resource "aws_instance" "this" {
   ami                         = local.ec2_ami != "" ? local.ec2_ami : data.aws_ami.debian.id
   instance_type               = local.ec2_instance_type
-  key_name                    = local.ec2_specified_key != "" ? data.aws_key_pair.selected.id : resource.aws_key_pair.this[0].id
+  key_name                    = local.ec2_specified_key != "" ? data.aws_key_pair.selected[0].id : resource.aws_key_pair.this[0].id
   associate_public_ip_address = local.ec2_associate_public_ip_address
   subnet_id                   = local.ec2_subnet_id
   vpc_security_group_ids      = local.ec2_security_groups
