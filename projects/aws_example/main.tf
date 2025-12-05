@@ -46,14 +46,94 @@ module "aws_network" {
 module "aws_ec2" {
   source = "../../modules/aws_ec2"
 
-  ec2_instance_name = "ec2_001"
-  ec2_instance_type = "t3.medium"
-  ec2_root_volume_size = 50
-  # ec2_specified_key = "ec2_key"
-  ec2_import_key = "ec2_key"
+  ec2_instance_name      = "ec2_001"
+  ec2_instance_type      = "t3.medium"
+  ec2_root_volume_size   = 50
+  ec2_import_key         = "ec2_key"
   ec2_import_key_content = file("${path.module}/secrets/ec2_key.pub")
-  ec2_subnet_id = module.aws_network.private_subnet_ids["ap-southeast-1a"]
+  ec2_subnet_id          = module.aws_network.private_subnet_ids["ap-southeast-1a"]
   ec2_security_groups = [
     module.aws_network.security_group_ids["sg_ssh"]
+  ]
+
+  # ec2_specified_key = "ec2_key"
+  # ec2_associate_public_ip_address = true
+}
+
+module "aws_net_lb" {
+  source = "../../modules/aws_loadbalancer"
+
+  lb_vpc_id = module.aws_network.vpc_id
+  lb_name   = "lb-net"
+  lb_type   = "network"
+  lb_subnets = [
+    module.aws_network.public_subnet_ids["ap-southeast-1a"],
+    module.aws_network.public_subnet_ids["ap-southeast-1b"],
+    module.aws_network.public_subnet_ids["ap-southeast-1c"],
+  ]
+  lb_security_groups = [
+    module.aws_network.security_group_ids["sg_ssh"]
+  ]
+
+  lb_target_groups = [
+    {
+      group_name = "ssh"
+      protocol   = "TCP"
+      port       = "22"
+      instances = [{
+        instance_id = module.aws_ec2.ec2_id
+        port        = "22"
+      }]
+    },
+  ]
+  lb_net_rules = [
+    {
+      port         = "22"
+      protocol     = "TCP"
+      target_group = "ssh"
+    }
+  ]
+}
+
+module "aws_app_lb" {
+  source = "../../modules/aws_loadbalancer"
+
+  lb_vpc_id = module.aws_network.vpc_id
+  lb_name   = "lb-app"
+  lb_type   = "application"
+  lb_subnets = [
+    module.aws_network.public_subnet_ids["ap-southeast-1a"],
+    module.aws_network.public_subnet_ids["ap-southeast-1b"],
+    module.aws_network.public_subnet_ids["ap-southeast-1c"],
+  ]
+  lb_security_groups = [
+    module.aws_network.security_group_ids["sg_ssh"]
+  ]
+
+  lb_target_groups = [
+    {
+      group_name = "http"
+      protocol   = "HTTP"
+      port       = "80"
+      instances = [{
+        instance_id = module.aws_ec2.ec2_id
+        port        = "80"
+      }]
+    },
+  ]
+  lb_app_rules = [
+    {
+      port                     = "443"
+      protocol                 = "HTTPS"
+      http_redirect_https_port = "80"
+      default_cert             = "arn:aws:acm:xxxxx"
+      rules = [{
+        host_name    = "www.host.com"
+        target_group = "http"
+        priority     = "1"
+      }]
+      # extra_certs = []
+      # ssl_policy = ""
+    }
   ]
 }
