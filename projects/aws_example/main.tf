@@ -126,7 +126,7 @@ module "aws_app_lb" {
       port                     = "443"
       protocol                 = "HTTPS"
       http_redirect_https_port = "80"
-      default_cert             = "arn:aws:acm:xxxxx"
+      default_cert             = module.aws_cert_request.arn
       rules = [{
         host_name    = "www.host.com"
         target_group = "http"
@@ -136,4 +136,21 @@ module "aws_app_lb" {
       # ssl_policy = ""
     }
   ]
+}
+
+# import cert
+module "aws_cert_import" {
+  source = "../../modules/aws_certificate"
+
+  import_private_key      = file("${path.module}/key.pem")
+  import_certificate_body = file("${path.module}/crt.pem")
+}
+
+# request cert
+module "aws_cert_request" {
+  source = "../../modules/aws_certificate"
+
+  request_dns_provider              = "cloudflare"
+  request_domain_name               = "host.com"
+  request_subject_alternative_names = ["host.com", "*.host.com"]
 }
