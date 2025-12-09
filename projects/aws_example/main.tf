@@ -154,3 +154,29 @@ module "aws_cert_request" {
   request_domain_name               = "host.com"
   request_subject_alternative_names = ["host.com", "*.host.com"]
 }
+
+module "aws_elasticache" {
+  source = "../../modules/aws_elasticache"
+
+  replication_group_id       = "redis"
+  node_type                  = "cache.t4g.small"
+  num_cache_clusters         = 2
+  engine                     = "valkey"
+  engine_version             = "8.2"
+  parameter_group_name       = "default.valkey8"
+  port                       = 6379
+  description                = "valkey 8.2"
+  cluster_mode               = "disabled"
+  transit_encryption_enabled = true
+  auth_token                 = file("${path.module}/redis_token")
+  auth_token_update_strategy = "SET"
+  subnet_group = {
+    # create new subnet group with subnet_ids, use exist subnet group without subnet_ids 
+    name = "private-subnet"
+    subnet_ids = [
+      module.aws_network.private_subnet_ids["ap-southeast-1a"],
+      module.aws_network.private_subnet_ids["ap-southeast-1b"],
+      module.aws_network.private_subnet_ids["ap-southeast-1c"],
+    ]
+  }
+}
