@@ -142,8 +142,8 @@ module "aws_app_lb" {
 module "aws_cert_import" {
   source = "../../modules/aws_certificate"
 
-  import_private_key      = file("${path.module}/key.pem")
-  import_certificate_body = file("${path.module}/crt.pem")
+  import_private_key      = file("${path.module}/secrets/key.pem")
+  import_certificate_body = file("${path.module}/secrets/crt.pem")
 }
 
 # request cert
@@ -168,7 +168,7 @@ module "aws_elasticache" {
   description                = "valkey 8.2"
   cluster_mode               = "disabled"
   transit_encryption_enabled = true
-  auth_token                 = file("${path.module}/redis_token")
+  auth_token                 = file("${path.module}/secrets/redis_token")
   auth_token_update_strategy = "SET"
   subnet_group = {
     # create new subnet group with subnet_ids, use exist subnet group without subnet_ids 
@@ -179,4 +179,52 @@ module "aws_elasticache" {
       module.aws_network.private_subnet_ids["ap-southeast-1c"],
     ]
   }
+}
+
+# Base on aurora mysql 8.0
+module "aws_rds" {
+  source = "../../modules/aws_rds"
+
+  cluster_identifier = "aurora-cluster"
+  engine             = "aurora-mysql"
+  engine_version     = "8.0.mysql_aurora.3.08.2"
+  master_username    = "root"
+  master_password    = file("${path.module}/secrets/mysql_password")
+  subnet_group = {
+    # create new subnet group with subnet_ids, use exist subnet group without subnet_ids
+    name = "private-subnet"
+    subnet_ids = [
+      module.aws_network.private_subnet_ids["ap-southeast-1a"],
+      module.aws_network.private_subnet_ids["ap-southeast-1b"],
+      module.aws_network.private_subnet_ids["ap-southeast-1c"],
+    ]
+  }
+  cluster_instance_type   = "db.t4g.medium"
+  cluster_instance_num    = 2
+  cluster_instance_prefix = "db"
+  # First time use this module, initialize parameter group and use it as default
+  enabled_parameter_group_initialize = true
+}
+
+# New One
+module "aws_rds_small" {
+  source = "../../modules/aws_rds"
+
+  cluster_identifier = "aurora-cluster-small"
+  engine             = "aurora-mysql"
+  engine_version     = "8.0.mysql_aurora.3.08.2"
+  master_username    = "root"
+  master_password    = file("${path.module}/secrets/mysql_password")
+  subnet_group = {
+    name = "private-subnet"
+  }
+  cluster_instance_type   = "db.t4g.small"
+  cluster_instance_num    = 1
+  cluster_instance_prefix = "db"
+  # Use parameter group initialize by aws_rds module
+  cluster_parameter_group_name  = module.aws_rds.initialize_cluster_parameter_group_name
+  instance_parameter_group_name = module.aws_rds.initialize_instance_parameter_group_name
+  # Or default parameter group
+  # cluster_parameter_group_name  = "default.aurora-mysql8.0"
+  # instance_parameter_group_name = "default.aurora-mysql8.0"
 }
