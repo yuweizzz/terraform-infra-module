@@ -228,3 +228,16 @@ module "aws_rds_small" {
   # cluster_parameter_group_name  = "default.aurora-mysql8.0"
   # instance_parameter_group_name = "default.aurora-mysql8.0"
 }
+
+module "aws_s3_private" {
+  source = "../../modules/aws_s3"
+
+  bucket_name = "s3-private"
+}
+
+module "aws_s3_public" {
+  source = "../../modules/aws_s3"
+
+  bucket_name = "s3-public"
+  allow_public_read = true
+}
