@@ -79,3 +79,20 @@ module "huaweicloud_rds" {
   rds_security_group = module.huaweicloud_network.security_group_ids["sg_rds"]
   # rds_timezone = "UTC+08:00"
 }
+
+module "huaweicloud_dcs" {
+  source = "../../modules/huaweicloud_dcs"
+
+  dcs_name      = "instance_1"
+  dcs_vpc_id    = module.huaweicloud_network.vpc_id
+  dcs_subnet_id = module.huaweicloud_network.subnet_ids["subnet_private"]
+  dcs_flavor_id = "redis.single.xu1.large.4"
+  dcs_capacity  = 4
+  dcs_password  = file("${path.module}/secrets/dcs_password")
+  dcs_whitelist = {
+    group_name = "ecs"
+    ip_address = [
+      module.huaweicloud_ecs.ecs_access_ip_v4,
+    ]
+  }
+}
