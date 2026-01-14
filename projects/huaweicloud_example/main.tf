@@ -42,10 +42,14 @@ module "huaweicloud_network" {
       ]
       egress_rules = [
         {
-          action      = "allow"
-          cidr_ipv4   = "0.0.0.0/0"
+          action    = "allow"
+          cidr_ipv4 = "0.0.0.0/0"
         }
       ]
+    },
+    {
+      name                 = "sg_rds"
+      delete_default_rules = false
     }
   ]
 }
@@ -53,12 +57,25 @@ module "huaweicloud_network" {
 module "huaweicloud_ecs" {
   source = "../../modules/huaweicloud_ecs"
 
-  ecs_instance_name = "instance_1"
-  ecs_admin_pass = file("${path.module}/secrets/ecs_passwd")
+  ecs_instance_name    = "instance_1"
+  ecs_admin_pass       = file("${path.module}/secrets/ecs_passwd")
   ecs_root_volume_size = 50
-  ecs_instance_type = "t6.large.2"
-  ecs_subnet_id = module.huaweicloud_network.subnet_ids["subnet_private"]
+  ecs_instance_type    = "t6.large.2"
+  ecs_subnet_id        = module.huaweicloud_network.subnet_ids["subnet_private"]
   ecs_security_groups = [
     module.huaweicloud_network.security_group_ids["sg_ssh"]
   ]
+}
+
+module "huaweicloud_rds" {
+  source = "../../modules/huaweicloud_rds"
+
+  rds_name           = "instance_1"
+  rds_flavor_id      = "rds.mysql.n1.large.4"
+  rds_password       = file("${path.module}/secrets/rds_password")
+  rds_storage_size   = 50
+  rds_vpc_id         = module.huaweicloud_network.vpc_id
+  rds_subnet_id      = module.huaweicloud_network.subnet_ids["subnet_private"]
+  rds_security_group = module.huaweicloud_network.security_group_ids["sg_rds"]
+  # rds_timezone = "UTC+08:00"
 }
