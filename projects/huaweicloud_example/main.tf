@@ -96,3 +96,12 @@ module "huaweicloud_dcs" {
     ]
   }
 }
+
+module "huaweicloud_cert" {
+  source = "../../modules/huaweicloud_certificate"
+
+  region             = local.region
+  cert_name          = "host.name"
+  import_certificate = file("${path.module}/secrets/crt.pem")
+  import_private_key = file("${path.module}/secrets/key.pem")
+}
