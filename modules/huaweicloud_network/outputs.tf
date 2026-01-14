@@ -8,3 +8,10 @@ output "subnet_ids" {
     null
   )
 }
+
+output "security_group_ids" {
+  value = try(
+    { for k, v in huaweicloud_networking_secgroup.this : k => v.id },
+    null
+  )
+}

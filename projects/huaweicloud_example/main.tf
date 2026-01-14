@@ -49,3 +49,16 @@ module "huaweicloud_network" {
     }
   ]
 }
+
+module "huaweicloud_ecs" {
+  source = "../../modules/huaweicloud_ecs"
+
+  ecs_instance_name = "instance_1"
+  ecs_admin_pass = file("${path.module}/secrets/ecs_passwd")
+  ecs_root_volume_size = 50
+  ecs_instance_type = "t6.large.2"
+  ecs_subnet_id = module.huaweicloud_network.subnet_ids["subnet_private"]
+  ecs_security_groups = [
+    module.huaweicloud_network.security_group_ids["sg_ssh"]
+  ]
+}
