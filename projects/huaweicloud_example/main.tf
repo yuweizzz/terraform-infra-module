@@ -11,22 +11,33 @@ module "huaweicloud_network" {
 
   vpc_name       = "hongkong_vpc"
   vpc_cidr_block = "10.1.0.0/16"
-  vpc_subnets = [{
-    name       = "subnet_private"
-    cidr       = "10.1.1.0/24"
-    gateway_ip = "10.1.1.1"
-  }]
+  vpc_subnets = [
+    {
+      name       = "subnet_private"
+      cidr       = "10.1.1.0/24"
+      gateway_ip = "10.1.1.1"
+    },
+    {
+      name       = "subnet_elb"
+      cidr       = "10.1.2.0/24"
+      gateway_ip = "10.1.2.1"
+    }
+  ]
 
   nat_gateway_spec        = "1"
   nat_gateway_subnet_name = "subnet_private"
-  nat_gateway_eips = [{
-    eip_name      = "nat_eip_a"
-    eip_bandwidth = 50
-  }]
-  nat_gateway_snat_rules = [{
-    subnet_name = "subnet_private"
-    eip_name    = "nat_eip_a"
-  }]
+  nat_gateway_eips = [
+    {
+      eip_name      = "nat_eip_a"
+      eip_bandwidth = 50
+    }
+  ]
+  nat_gateway_snat_rules = [
+    {
+      subnet_name = "subnet_private"
+      eip_name    = "nat_eip_a"
+    }
+  ]
 
   security_groups = [
     {
@@ -104,4 +115,67 @@ module "huaweicloud_cert" {
   cert_name          = "host.name"
   import_certificate = file("${path.module}/secrets/crt.pem")
   import_private_key = file("${path.module}/secrets/key.pem")
+}
+
+
+module "huaweicloud_loadbalancer" {
+  source = "../../modules/huaweicloud_loadbalancer"
+
+  lb_vpc_id    = module.huaweicloud_network.vpc_id
+  lb_name      = "application"
+  lb_bandwidth = 20
+
+  lb_subnet_id = module.huaweicloud_network.subnet_ids["subnet_elb"]
+  lb_backend_subnets = [
+    module.huaweicloud_network.subnet_ids["subnet_private"]
+  ]
+
+  lb_backend_pools = [
+    {
+      name = "http"
+      members = [{
+        subnet_id      = module.huaweicloud_network.subnet_ids["subnet_private"]
+        member_address = module.huaweicloud_ecs.ecs_access_ip_v4
+        port           = 80
+      }]
+    }
+  ]
+
+  lb_listeners = [
+    {
+      name     = "http"
+      protocol = "HTTP"
+      port     = 80
+    },
+    {
+      name     = "https"
+      protocol = "HTTPS"
+      port     = 443
+      cert_id  = module.huaweicloud_cert.cert_id
+    }
+  ]
+
+  lb_policys = [
+    {
+      name                   = "http_to_https"
+      action                 = "REDIRECT_TO_LISTENER"
+      position               = 1
+      listener_port          = 80
+      redirect_listener_port = 443
+    },
+    {
+      name               = "application"
+      action             = "REDIRECT_TO_POOL"
+      position           = 1
+      listener_port      = 443
+      redirect_pool_name = "http"
+      rules = [
+        {
+          type            = "HOST_NAME"
+          compare_type    = "EQUAL_TO"
+          condition_value = "host.com"
+        }
+      ]
+    }
+  ]
 }
