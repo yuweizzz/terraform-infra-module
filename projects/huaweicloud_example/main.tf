@@ -108,6 +108,12 @@ module "huaweicloud_dcs" {
   }
 }
 
+module "huaweicloud_obs" {
+  source = "../../modules/huaweicloud_obs"
+
+  bucket_name = "obs-private"
+}
+
 module "huaweicloud_cert" {
   source = "../../modules/huaweicloud_certificate"
 
@@ -116,7 +122,6 @@ module "huaweicloud_cert" {
   import_certificate = file("${path.module}/secrets/crt.pem")
   import_private_key = file("${path.module}/secrets/key.pem")
 }
-
 
 module "huaweicloud_loadbalancer" {
   source = "../../modules/huaweicloud_loadbalancer"
