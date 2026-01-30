@@ -184,3 +184,28 @@ module "huaweicloud_loadbalancer" {
     }
   ]
 }
+
+module "huaweicloud_vpn_gateway" {
+  source = "../../modules/huaweicloud_vpn_gateway"
+
+  name               = "vpn_gateway"
+  vpc_id             = module.huaweicloud_network.vpc_id
+  subnet_id          = module.huaweicloud_network.subnet_ids["subnet_elb"]
+  local_subnet_cidrs = ["10.1.1.0/24"]
+  peer_subnet_cidrs  = ["10.11.0.0/16"]
+
+  customer_gateways = [
+    {
+      name       = "tunnel_1"
+      ip_address = "1.1.1.1"
+      psk        = "tunnel_1_psk"
+      eip_index  = 0
+    },
+    {
+      name       = "tunnel_2"
+      ip_address = "2.2.2.2"
+      psk        = "tunnel_2_psk"
+      eip_index  = 1
+    }
+  ]
+}
