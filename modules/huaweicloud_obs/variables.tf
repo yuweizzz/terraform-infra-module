@@ -31,5 +31,6 @@ variable "multi_az" {
 
 variable "region" {
   description = "region of bucket, if not specified, used the region by the provider."
-  type        = optional(string)
+  type        = string
+  default     = null
 }
