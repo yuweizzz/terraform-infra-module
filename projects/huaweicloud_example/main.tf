@@ -126,41 +126,54 @@ module "huaweicloud_cert" {
 module "huaweicloud_loadbalancer" {
   source = "../../modules/huaweicloud_loadbalancer"
 
-  lb_vpc_id    = module.huaweicloud_network.vpc_id
-  lb_name      = "application"
-  lb_bandwidth = 20
-
-  lb_subnet_id = module.huaweicloud_network.subnet_ids["subnet_elb"]
-  lb_backend_subnets = [
+  name      = "application"
+  bandwidth = 20
+  vpc_id    = module.huaweicloud_network.vpc_id
+  subnet_id = module.huaweicloud_network.subnet_ids["subnet_elb"]
+  backend_subnets = [
     module.huaweicloud_network.subnet_ids["subnet_private"]
   ]
 
-  lb_backend_pools = [
+  backend_pools = [
     {
       name = "http"
       members = [{
-        subnet_id      = module.huaweicloud_network.subnet_ids["subnet_private"]
-        member_address = module.huaweicloud_ecs.ecs_access_ip_v4
-        port           = 80
+        subnet_id = module.huaweicloud_network.subnet_ids["subnet_private"]
+        address   = module.huaweicloud_ecs.ecs_access_ip_v4
+        port      = 80
       }]
     }
   ]
 
-  lb_listeners = [
+  ip_groups = [
+    {
+      name = "white_list"
+      ip_lists = [
+        {
+          ip          = "1.1.1.1"
+          description = "ip"
+        }
+      ]
+    }
+  ]
+
+  listeners = [
     {
       name     = "http"
       protocol = "HTTP"
       port     = 80
     },
     {
-      name     = "https"
-      protocol = "HTTPS"
-      port     = 443
-      cert_id  = module.huaweicloud_cert.cert_id
+      name          = "https"
+      protocol      = "HTTPS"
+      port          = 443
+      cert_id       = module.huaweicloud_cert.cert_id
+      access_policy = "white"
+      ip_group_name = "white_list"
     }
   ]
 
-  lb_policys = [
+  policys = [
     {
       name                   = "http_to_https"
       action                 = "REDIRECT_TO_LISTENER"
