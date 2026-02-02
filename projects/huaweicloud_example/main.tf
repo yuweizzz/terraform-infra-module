@@ -229,3 +229,31 @@ module "huaweicloud_vpn_gateway" {
     }
   ]
 }
+
+module "huaweicloud_lts" {
+  source = "../../modules/huaweicloud_lts"
+
+  name = "log_group"
+  log_streams = [
+    {
+      name = "app1"
+    },
+    {
+      name = "app2"
+    }
+  ]
+  host_groups = [
+    {
+      name         = "nginx"
+      host_ip_list = [module.huaweicloud_ecs.access_ip_v4]
+    }
+  ]
+  host_accesses = [
+    {
+      name             = "nginx"
+      stream_name      = "nginx"
+      host_group_names = ["nginx"]
+      log_paths        = ["/var/log/nginx/*.log"]
+    }
+  ]
+}
