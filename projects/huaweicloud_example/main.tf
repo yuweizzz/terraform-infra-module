@@ -25,7 +25,7 @@ module "huaweicloud_network" {
   ]
 
   nat_gateway_spec        = "1"
-  nat_gateway_subnet_name = "subnet_private"
+  nat_gateway_subnet_name = "subnet_elb"
   nat_gateway_eips = [
     {
       eip_name      = "nat_eip_a"
@@ -38,11 +38,19 @@ module "huaweicloud_network" {
       eip_name    = "nat_eip_a"
     }
   ]
+  nat_gateway_dnat_rules = [
+    {
+      eip_name              = "nat_eip_a"
+      ecs_id                = module.huaweicloud_ecs.ecs_id
+      protocol              = "tcp"
+      internal_service_port = 80
+      external_service_port = 8080
+    }
+  ]
 
   security_groups = [
     {
-      name                 = "sg_ssh"
-      delete_default_rules = false
+      name = "sg_ssh"
       ingress_rules = [
         {
           ports       = "22"
@@ -59,8 +67,7 @@ module "huaweicloud_network" {
       ]
     },
     {
-      name                 = "sg_rds"
-      delete_default_rules = false
+      name = "sg_rds"
     }
   ]
 }

@@ -1,25 +1,22 @@
-terraform {
-  required_providers {
-    huaweicloud = {
-      source  = "huaweicloud/huaweicloud"
-      version = ">= 1.36.0"
-    }
-  }
-}
-
 locals {
-  vpc_name                = var.vpc_name
-  vpc_cidr_block          = var.vpc_cidr_block
-  vpc_subnets             = { for k, v in var.vpc_subnets : v.name => v }
-  nat_gateway_subnet_name = var.nat_gateway_subnet_name
-  nat_gateway_spec        = var.nat_gateway_spec
-  nat_gateway_eips        = { for k, v in var.nat_gateway_eips : v.eip_name => v.eip_bandwidth }
-  nat_gateway_snat_rules  = { for k, v in var.nat_gateway_snat_rules : v.eip_name => v.subnet_name }
-  security_groups         = { for k, v in var.security_groups : v.name => v.delete_default_rules }
-  ingress_rules           = { for k, v in var.security_groups : v.name => v.ingress_rules }
-  egress_rules            = { for k, v in var.security_groups : v.name => v.egress_rules }
-  ingress_rules_list      = flatten([for k, v in local.ingress_rules : [for i, j in v : merge({ name = k }, j)]])
-  egress_rules_list       = flatten([for k, v in local.egress_rules : [for i, j in v : merge({ name = k }, j)]])
+  vpc_name                   = var.vpc_name
+  vpc_cidr_block             = var.vpc_cidr_block
+  vpc_subnets                = { for k, v in var.vpc_subnets : v.name => v }
+  nat_gateway_subnet_name    = var.nat_gateway_subnet_name
+  nat_gateway_spec           = var.nat_gateway_spec
+  nat_gateway_eips           = { for k, v in var.nat_gateway_eips : v.eip_name => v.eip_bandwidth }
+  nat_gateway_snat_rules     = { for k, v in var.nat_gateway_snat_rules : v.eip_name => v.subnet_name }
+  nat_gateway_dnat_rules     = { for k, v in var.nat_gateway_dnat_rules : k => v }
+  nat_gateway_dnat_instances = toset([for k, v in var.nat_gateway_dnat_rules : v.ecs_id])
+  security_groups            = { for k, v in var.security_groups : v.name => v.delete_default_rules }
+  ingress_rules              = { for k, v in var.security_groups : v.name => v.ingress_rules }
+  egress_rules               = { for k, v in var.security_groups : v.name => v.egress_rules }
+  ingress_rules_list = flatten([
+    for k, v in local.ingress_rules : [for i, j in v : merge({ name = k }, j)]
+  ])
+  egress_rules_list = flatten([
+    for k, v in local.egress_rules : [for i, j in v : merge({ name = k }, j)]
+  ])
 }
 
 resource "huaweicloud_vpc" "this" {
@@ -66,6 +63,23 @@ resource "huaweicloud_nat_snat_rule" "this" {
   subnet_id      = huaweicloud_vpc_subnet.this[each.value].id
 }
 
+data "huaweicloud_compute_instance" "this" {
+  for_each = { for k, v in local.nat_gateway_dnat_instances : v => "1" }
+
+  instance_id = each.key
+}
+
+resource "huaweicloud_nat_dnat_rule" "this" {
+  for_each = local.nat_gateway_dnat_rules
+
+  nat_gateway_id        = huaweicloud_nat_gateway.this.id
+  floating_ip_id        = huaweicloud_vpc_eip.this[each.value.eip_name].id
+  port_id               = data.huaweicloud_compute_instance.this[each.value.ecs_id].network[0].port
+  protocol              = each.value.protocol
+  internal_service_port = each.value.internal_service_port
+  external_service_port = each.value.external_service_port
+}
+
 resource "huaweicloud_networking_secgroup" "this" {
   for_each = local.security_groups
 
@@ -80,8 +94,8 @@ resource "huaweicloud_networking_secgroup_rule" "ingress" {
   direction         = "ingress"
   ethertype         = "IPv4"
   action            = each.value.action
-  protocol          = try(each.value.ip_protocol, null)
-  ports             = try(each.value.ports, null)
+  protocol          = each.value.ip_protocol
+  ports             = each.value.ports
   remote_ip_prefix  = each.value.cidr_ipv4
 }
 
@@ -92,7 +106,7 @@ resource "huaweicloud_networking_secgroup_rule" "egress" {
   direction         = "egress"
   ethertype         = "IPv4"
   action            = each.value.action
-  protocol          = try(each.value.ip_protocol, null)
-  ports             = try(each.value.ports, null)
+  protocol          = each.value.ip_protocol
+  ports             = each.value.ports
   remote_ip_prefix  = each.value.cidr_ipv4
 }

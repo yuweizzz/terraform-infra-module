@@ -34,6 +34,7 @@ variable "nat_gateway_eips" {
     eip_name      = string
     eip_bandwidth = number
   }))
+  default = []
 }
 
 variable "nat_gateway_snat_rules" {
@@ -42,9 +43,38 @@ variable "nat_gateway_snat_rules" {
     subnet_name = string
     eip_name    = string
   }))
+  default = []
+}
+
+variable "nat_gateway_dnat_rules" {
+  description = "dnat rules of nat gateway"
+  type = list(object({
+    ecs_id                = string
+    eip_name              = string
+    protocol              = string
+    internal_service_port = number
+    external_service_port = number
+  }))
+  default = []
 }
 
 variable "security_groups" {
   description = "security groups of vpc"
-  type        = any
+  type = list(object({
+    name                 = string
+    delete_default_rules = optional(bool, false)
+    ingress_rules = optional(list(object({
+      action      = string
+      cidr_ipv4   = string
+      ports       = optional(string)
+      ip_protocol = optional(string)
+    })), [])
+    egress_rules = optional(list(object({
+      action      = string
+      cidr_ipv4   = string
+      ports       = optional(string)
+      ip_protocol = optional(string)
+    })), [])
+  }))
+  default = []
 }
