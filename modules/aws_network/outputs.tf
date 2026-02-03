@@ -1,5 +1,5 @@
 output "vpc_id" {
-  value  = try(aws_vpc.this.id, null)
+  value = try(aws_vpc.this.id, null)
 }
 
 output "default_security_group_id" {

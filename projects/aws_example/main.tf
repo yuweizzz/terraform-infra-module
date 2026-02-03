@@ -35,8 +35,7 @@ module "aws_network" {
       ]
       egress_rules = [
         {
-          cidr_ipv4   = "0.0.0.0/0"
-          ip_protocol = "-1"
+          cidr_ipv4 = "0.0.0.0/0"
         }
       ]
     }
@@ -238,6 +237,6 @@ module "aws_s3_private" {
 module "aws_s3_public" {
   source = "../../modules/aws_s3"
 
-  bucket_name = "s3-public"
+  bucket_name       = "s3-public"
   allow_public_read = true
 }

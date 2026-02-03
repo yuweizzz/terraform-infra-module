@@ -110,22 +110,22 @@ resource "aws_security_group" "this" {
 
 resource "aws_vpc_security_group_ingress_rule" "this" {
   # "for_each" supports maps and sets of strings, but you have provided a set containing type object.
-  for_each = tomap({ for k, v in local.ingress_rules_list : k => v })
+  for_each = { for k, v in local.ingress_rules_list : k => v }
 
   security_group_id = aws_security_group.this[each.value.name].id
   cidr_ipv4         = each.value.cidr_ipv4
   ip_protocol       = each.value.ip_protocol
-  from_port         = each.value.ip_protocol == "-1" ? null : each.value.from_port
-  to_port           = each.value.ip_protocol == "-1" ? null : each.value.to_port
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
 }
 
 resource "aws_vpc_security_group_egress_rule" "this" {
   # "for_each" supports maps and sets of strings, but you have provided a set containing type object.
-  for_each = tomap({ for k, v in local.egress_rules_list : k => v })
+  for_each = { for k, v in local.egress_rules_list : k => v }
 
   security_group_id = aws_security_group.this[each.value.name].id
   cidr_ipv4         = each.value.cidr_ipv4
   ip_protocol       = each.value.ip_protocol
-  from_port         = each.value.ip_protocol == "-1" ? null : each.value.from_port
-  to_port           = each.value.ip_protocol == "-1" ? null : each.value.to_port
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
 }
