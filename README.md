@@ -2,6 +2,7 @@
 
 Terraform plan work fine:
 
+- [aws_loadbalancer](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_loadbalancer)
 - [aws_network](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_network)
 - [aws_s3](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_s3)
 - [huaweicloud_loadbalancer](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/huaweicloud_loadbalancer)

@@ -62,19 +62,18 @@ module "aws_ec2" {
 module "aws_net_lb" {
   source = "../../modules/aws_loadbalancer"
 
-  lb_vpc_id = module.aws_network.vpc_id
-  lb_name   = "lb-net"
-  lb_type   = "network"
-  lb_subnets = [
+  name   = "lb-net"
+  vpc_id = module.aws_network.vpc_id
+  type   = "network"
+  subnet_ids = [
     module.aws_network.public_subnet_ids["ap-southeast-1a"],
     module.aws_network.public_subnet_ids["ap-southeast-1b"],
     module.aws_network.public_subnet_ids["ap-southeast-1c"],
   ]
-  lb_security_groups = [
+  security_group_ids = [
     module.aws_network.security_group_ids["sg_ssh"]
   ]
-
-  lb_target_groups = [
+  target_groups = [
     {
       group_name = "ssh"
       protocol   = "TCP"
@@ -85,11 +84,11 @@ module "aws_net_lb" {
       }]
     },
   ]
-  lb_net_rules = [
+  net_rules = [
     {
-      port         = "22"
-      protocol     = "TCP"
-      target_group = "ssh"
+      port              = 22
+      protocol          = "TCP"
+      target_group_name = "ssh"
     }
   ]
 }
@@ -97,19 +96,18 @@ module "aws_net_lb" {
 module "aws_app_lb" {
   source = "../../modules/aws_loadbalancer"
 
-  lb_vpc_id = module.aws_network.vpc_id
-  lb_name   = "lb-app"
-  lb_type   = "application"
-  lb_subnets = [
+  name   = "lb-app"
+  vpc_id = module.aws_network.vpc_id
+  type   = "application"
+  subnet_ids = [
     module.aws_network.public_subnet_ids["ap-southeast-1a"],
     module.aws_network.public_subnet_ids["ap-southeast-1b"],
     module.aws_network.public_subnet_ids["ap-southeast-1c"],
   ]
-  lb_security_groups = [
+  security_group_ids = [
     module.aws_network.security_group_ids["sg_ssh"]
   ]
-
-  lb_target_groups = [
+  target_groups = [
     {
       group_name = "http"
       protocol   = "HTTP"
@@ -120,19 +118,19 @@ module "aws_app_lb" {
       }]
     },
   ]
-  lb_app_rules = [
+  app_rules = [
     {
-      port                     = "443"
+      port                     = 443
       protocol                 = "HTTPS"
-      http_redirect_https_port = "80"
+      http_redirect_https_port = 80
       default_cert             = module.aws_cert_request.arn
       rules = [{
-        host_name    = "www.host.com"
-        target_group = "http"
-        priority     = "1"
+        host_name         = "www.host.com"
+        target_group_name = "http"
+        priority          = "1"
       }]
       # extra_certs = []
-      # ssl_policy = ""
+      # ssl_policy = "ELBSecurityPolicy-TLS13-1-2-2021-06"
     }
   ]
 }
