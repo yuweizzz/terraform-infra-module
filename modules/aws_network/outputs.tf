@@ -26,3 +26,11 @@ output "public_subnet_ids" {
     null
   )
 }
+
+output "main_route_table_id" {
+  value = try(data.aws_route_table.this.id, null)
+}
+
+output "nat_route_table_id" {
+  value = try(aws_route_table.this.id, null)
+}
