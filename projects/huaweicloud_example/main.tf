@@ -225,7 +225,7 @@ module "huaweicloud_vpn_gateway" {
       name       = "tunnel_2"
       ip_address = "2.2.2.2"
       psk        = "tunnel_2_psk"
-      eip_index  = 1
+      eip_index  = 0
     }
   ]
 }
