@@ -49,7 +49,7 @@ variable "nat_gateway_snat_rules" {
 variable "nat_gateway_dnat_rules" {
   description = "dnat rules of nat gateway"
   type = list(object({
-    ecs_id                = string
+    ecs                   = any
     eip_name              = string
     protocol              = string
     internal_service_port = number

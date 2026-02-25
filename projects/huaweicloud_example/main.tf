@@ -40,8 +40,8 @@ module "huaweicloud_network" {
   ]
   nat_gateway_dnat_rules = [
     {
+      ecs                   = module.huaweicloud_ecs
       eip_name              = "nat_eip_a"
-      ecs_id                = module.huaweicloud_ecs.ecs_id
       protocol              = "tcp"
       internal_service_port = 80
       external_service_port = 8080
@@ -106,11 +106,11 @@ module "huaweicloud_dcs" {
   dcs_subnet_id = module.huaweicloud_network.subnet_ids["subnet_private"]
   dcs_flavor_id = "redis.single.xu1.large.4"
   dcs_capacity  = 4
-  dcs_password  = file("${path.module}/secrets/dcs_password")
+  dcs_password  = file("${path.module}/secrets/dcs_passwd")
   dcs_whitelist = {
     group_name = "ecs"
     ip_address = [
-      module.huaweicloud_ecs.ecs_access_ip_v4,
+      module.huaweicloud_ecs.access_ip_v4,
     ]
   }
 }
@@ -146,7 +146,7 @@ module "huaweicloud_loadbalancer" {
       name = "http"
       members = [{
         subnet_id = module.huaweicloud_network.subnet_ids["subnet_private"]
-        address   = module.huaweicloud_ecs.ecs_access_ip_v4
+        address   = module.huaweicloud_ecs.access_ip_v4
         port      = 80
       }]
     }
@@ -240,6 +240,9 @@ module "huaweicloud_lts" {
     },
     {
       name = "app2"
+    },
+    {
+      name = "nginx"
     }
   ]
   host_groups = [
