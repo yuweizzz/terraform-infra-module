@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    huaweicloud = {
-      source  = "huaweicloud/huaweicloud"
-      version = ">= 1.36.0"
-    }
-  }
-}
-
 locals {
   dcs_name      = var.dcs_name
   dcs_flavor_id = var.dcs_flavor_id
@@ -29,7 +20,7 @@ resource "huaweicloud_dcs_instance" "this" {
   vpc_id         = local.dcs_vpc_id
   subnet_id      = local.dcs_subnet_id
   availability_zones = [
-    data.huaweicloud_availability_zones.az.names[0]
+    data.huaweicloud_availability_zones.this.names[0]
   ]
 
   whitelists {
