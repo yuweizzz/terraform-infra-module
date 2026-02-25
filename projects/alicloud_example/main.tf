@@ -24,3 +24,13 @@ module "alicloud_ecs" {
   root_volume_size = 50
   security_groups  = ["?"]
 }
+
+module "alicloud_kvstore" {
+  source = "../../modules/alicloud_kvstore"
+
+  instance_name = "redis"
+  vswitch_id    = "?"
+  password      = file("${path.module}/secrets/kvstore_passwd")
+
+  security_ips = [module.alicloud_ecs.private_ip]
+}

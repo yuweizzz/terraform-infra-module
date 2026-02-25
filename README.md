@@ -2,6 +2,9 @@
 
 Terraform plan work fine:
 
+- [alicloud_certificate](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/alicloud_certificate)
+- [alicloud_ecs](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/alicloud_ecs)
+- [alicloud_kvstore](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/alicloud_kvstore)
 - [aws_loadbalancer](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_loadbalancer)
 - [aws_network](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_network)
 - [aws_s3](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_s3)
