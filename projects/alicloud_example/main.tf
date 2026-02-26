@@ -34,3 +34,9 @@ module "alicloud_kvstore" {
 
   security_ips = [module.alicloud_ecs.private_ip]
 }
+
+module "alicloud_oss" {
+  source = "../../modules/alicloud_oss"
+
+  bucket_name = "private"
+}
