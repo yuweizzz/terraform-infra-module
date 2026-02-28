@@ -6,6 +6,10 @@ locals {
   region = "ap-southeast-1"
 }
 
+data "alicloud_zones" "available_zones" {
+  available_resource_creation = "VSwitch"
+}
+
 module "alicloud_certificate" {
   source = "../../modules/alicloud_certificate"
 
@@ -48,4 +52,13 @@ module "alicloud_rocketmq" {
   vswitch_id    = "?"
   instance_name = "rocketmq"
   ip_whitelists = [module.alicloud_ecs.private_ip]
+}
+
+module "alicloud_polardb" {
+  source = "../../modules/alicloud_polardb"
+
+  cluster_name = "polardb"
+  vswitch_id   = "?"
+  standby_az   = data.alicloud_zones.available_zones.zones.0.id
+  security_ips = [module.alicloud_ecs.private_ip]
 }
