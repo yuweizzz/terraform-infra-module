@@ -40,3 +40,12 @@ module "alicloud_oss" {
 
   bucket_name = "private"
 }
+
+module "alicloud_rocketmq" {
+  source = "../../modules/alicloud_rocketmq"
+
+  vpc_id        = "?"
+  vswitch_id    = "?"
+  instance_name = "rocketmq"
+  ip_whitelists = [module.alicloud_ecs.private_ip]
+}
