@@ -9,6 +9,7 @@ Terraform plan work fine:
 - [alicloud_oss](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/alicloud_oss)
 - [alicloud_polardb](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/alicloud_polardb)
 - [alicloud_rocketmq](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/alicloud_rocketmq)
+- [alicloud_sls](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/alicloud_sls)
 - [aws_loadbalancer](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_loadbalancer)
 - [aws_network](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_network)
 - [aws_s3](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_s3)

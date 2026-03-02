@@ -114,3 +114,27 @@ module "alicloud_polardb" {
   standby_az   = data.alicloud_zones.available_zones.zones.0.id
   security_ips = [module.alicloud_ecs.private_ip]
 }
+
+module "alicloud_sls" {
+  source = "../../modules/alicloud_sls"
+
+  project_name = "application"
+  logstores = [
+    { name = "nginx" }
+  ]
+  machine_groups = [
+    {
+      name     = "app"
+      ip_lists = [module.alicloud_ecs.private_ip]
+    }
+  ]
+  logtail_configs = [
+    {
+      config_name        = "nginx"
+      logstore_name      = "nginx"
+      machine_group_name = "app"
+      log_path           = "/var/log/nginx"
+      file_pattern       = "access-*.log"
+    }
+  ]
+}
