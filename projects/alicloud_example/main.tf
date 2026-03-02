@@ -10,6 +10,58 @@ data "alicloud_zones" "available_zones" {
   available_resource_creation = "VSwitch"
 }
 
+module "alicloud_network" {
+  source = "../../modules/alicloud_network"
+
+  vpc_name       = "singapore_vpc"
+  vpc_cidr_block = "10.1.0.0/16"
+  vswitches = [
+    {
+      name       = "azone"
+      cidr_block = "10.1.1.0/24"
+      zone_id    = data.alicloud_zones.available_zones.zones.0.id
+    }
+  ]
+
+  nat_gateway_name         = "singapore_nat_gateway"
+  nat_gateway_vswitch_name = "azone"
+  nat_gateway_eips = [
+    {
+      eip_name      = "nat_eip_a"
+      eip_bandwidth = 50
+    }
+  ]
+  nat_gateway_snat_rules = [
+    {
+      vswitch_name = "azone"
+      eip_name     = "nat_eip_a"
+    }
+  ]
+  nat_gateway_dnat_rules = [
+    {
+      ecs                   = module.alicloud_ecs
+      eip_name              = "nat_eip_a"
+      protocol              = "tcp"
+      internal_service_port = 80
+      external_service_port = 8080
+    }
+  ]
+
+  security_groups = [
+    {
+      name        = "sg_ssh"
+      description = "ssh"
+      ingress_rules = [
+        {
+          ip_protocol = "tcp"
+          cidr_ip     = "0.0.0.0/0"
+          port_range  = "22"
+        }
+      ]
+    }
+  ]
+}
+
 module "alicloud_certificate" {
   source = "../../modules/alicloud_certificate"
 
@@ -23,17 +75,17 @@ module "alicloud_ecs" {
 
   instance_name    = "instance-1"
   instance_type    = "ecs.c9a.large"
-  vswitch_id       = "?"
+  vswitch_id       = module.alicloud_network.vswitch_ids["azone"]
   admin_pass       = file("${path.module}/secrets/ecs_passwd")
   root_volume_size = 50
-  security_groups  = ["?"]
+  security_groups  = [module.alicloud_network.security_group_ids["sg_ssh"]]
 }
 
 module "alicloud_kvstore" {
   source = "../../modules/alicloud_kvstore"
 
   instance_name = "redis"
-  vswitch_id    = "?"
+  vswitch_id    = module.alicloud_network.vswitch_ids["azone"]
   password      = file("${path.module}/secrets/kvstore_passwd")
 
   security_ips = [module.alicloud_ecs.private_ip]
@@ -48,8 +100,8 @@ module "alicloud_oss" {
 module "alicloud_rocketmq" {
   source = "../../modules/alicloud_rocketmq"
 
-  vpc_id        = "?"
-  vswitch_id    = "?"
+  vpc_id        = module.alicloud_network.vpc_id
+  vswitch_id    = module.alicloud_network.vswitch_ids["azone"]
   instance_name = "rocketmq"
   ip_whitelists = [module.alicloud_ecs.private_ip]
 }
@@ -58,7 +110,7 @@ module "alicloud_polardb" {
   source = "../../modules/alicloud_polardb"
 
   cluster_name = "polardb"
-  vswitch_id   = "?"
+  vswitch_id   = module.alicloud_network.vswitch_ids["azone"]
   standby_az   = data.alicloud_zones.available_zones.zones.0.id
   security_ips = [module.alicloud_ecs.private_ip]
 }
