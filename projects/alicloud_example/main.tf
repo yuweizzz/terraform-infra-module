@@ -138,3 +138,78 @@ module "alicloud_sls" {
     }
   ]
 }
+
+module "alicloud_loadbalancer" {
+  source = "../../modules/alicloud_loadbalancer"
+
+  name = "application"
+  server_groups = [
+    {
+      name = "http"
+      members = [{
+        server_id = module.alicloud_ecs.ecs_id
+        port      = 80
+      }]
+    }
+  ]
+  acl_groups = [
+    {
+      name    = "white_list"
+      entries = ["1.1.1.1/32"]
+    }
+  ]
+  certs = [
+    {
+      name          = "host_com"
+      region        = local.region
+      cert_ref_id   = module.alicloud_certificate.cert_id
+      cert_ref_name = module.alicloud_certificate.cert_name
+    },
+    {
+      name   = "domain_com"
+      region = local.region
+      # example
+      cert_ref_id   = module.alicloud_certificate.cert_id
+      cert_ref_name = module.alicloud_certificate.cert_name
+    }
+  ]
+  listeners = [
+    {
+      name          = "http"
+      protocol      = "http"
+      frontend_port = 80
+      forward_port  = 443
+    },
+    {
+      name          = "https"
+      protocol      = "https"
+      frontend_port = 443
+      backend_port  = 80
+      default_cert  = "host_com"
+      acl_status    = "on"
+      acl_type      = "white"
+      acl_groups    = ["white_list"]
+    }
+  ]
+  domain_extensions = [
+    {
+      cert_name     = "domain_com"
+      domain        = "www.domain.com"
+      listener_name = "https"
+    }
+  ]
+  rules = [
+    {
+      name              = "application"
+      domain            = "www.host.com"
+      listener_name     = "https"
+      server_group_name = "http"
+    },
+    {
+      name              = "application_1"
+      domain            = "www.domain.com"
+      listener_name     = "https"
+      server_group_name = "http"
+    }
+  ]
+}
