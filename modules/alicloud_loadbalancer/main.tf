@@ -64,6 +64,9 @@ resource "alicloud_slb_server_certificate" "this" {
   alicloud_certificate_id        = each.value.cert_ref_id
   alicloud_certificate_name      = each.value.cert_ref_name
   alicloud_certificate_region_id = each.value.region
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "alicloud_slb_listener" "https" {
