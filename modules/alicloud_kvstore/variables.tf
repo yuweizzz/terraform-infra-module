@@ -3,6 +3,16 @@ variable "vswitch_id" {
   type        = string
 }
 
+variable "zone_id" {
+  description = "zone id of kvstore instance"
+  type        = string
+}
+
+variable "secondary_zone_id" {
+  description = "secondary zone id of kvstore instance"
+  type        = string
+}
+
 variable "instance_name" {
   description = "name of kvstore instance"
   type        = string

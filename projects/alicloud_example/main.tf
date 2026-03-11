@@ -70,6 +70,11 @@ module "alicloud_certificate" {
   import_private_key = file("${path.module}/secrets/key.pem")
 }
 
+data "alicloud_images" "debian" {
+  owners     = "system"
+  name_regex = "^debian_13_3_x64"
+}
+
 module "alicloud_ecs" {
   source = "../../modules/alicloud_ecs"
 
@@ -78,15 +83,20 @@ module "alicloud_ecs" {
   vswitch_id       = module.alicloud_network.vswitch_ids["azone"]
   admin_pass       = file("${path.module}/secrets/ecs_passwd")
   root_volume_size = 50
-  security_groups  = [module.alicloud_network.security_group_ids["sg_ssh"]]
+  image_id         = data.alicloud_images.debian.images.0.id
+  security_groups = [
+    module.alicloud_network.security_group_ids["sg_ssh"]
+  ]
 }
 
 module "alicloud_kvstore" {
   source = "../../modules/alicloud_kvstore"
 
-  instance_name = "redis"
-  vswitch_id    = module.alicloud_network.vswitch_ids["azone"]
-  password      = file("${path.module}/secrets/kvstore_passwd")
+  instance_name     = "redis"
+  vswitch_id        = module.alicloud_network.vswitch_ids["azone"]
+  zone_id           = data.alicloud_zones.available_zones.zones.0.id
+  secondary_zone_id = data.alicloud_zones.available_zones.zones.1.id
+  password          = file("${path.module}/secrets/kvstore_passwd")
 
   security_ips = [module.alicloud_ecs.private_ip]
 }

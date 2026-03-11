@@ -8,16 +8,11 @@ locals {
   security_groups  = var.security_groups
 }
 
-data "alicloud_images" "debian" {
-  owners     = "system"
-  name_regex = "^debian_13_3_x64"
-}
-
 resource "alicloud_instance" "this" {
   instance_name   = local.instance_name
   vswitch_id      = local.vswitch_id
   instance_type   = local.instance_type
-  image_id        = local.image_id == null ? data.alicloud_images.debian.images.0.id : local.image_id
+  image_id        = local.image_id
   host_name       = local.instance_name
   password        = local.admin_pass
   security_groups = local.security_groups

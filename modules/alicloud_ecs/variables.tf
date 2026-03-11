@@ -9,9 +9,8 @@ variable "instance_type" {
 }
 
 variable "image_id" {
-  description = "image id of ecs instance, use debian13 as default value"
+  description = "image id of ecs instance"
   type        = string
-  default     = null
 }
 
 variable "vswitch_id" {
