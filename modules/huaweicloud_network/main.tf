@@ -5,7 +5,7 @@ locals {
   nat_gateway_subnet_name = var.nat_gateway_subnet_name
   nat_gateway_spec        = var.nat_gateway_spec
   nat_gateway_eips        = { for k, v in var.nat_gateway_eips : v.eip_name => v.eip_bandwidth }
-  nat_gateway_snat_rules  = { for k, v in var.nat_gateway_snat_rules : v.eip_name => v.subnet_name }
+  nat_gateway_snat_rules  = { for k, v in var.nat_gateway_snat_rules : v.subnet_name => v.eip_name }
   nat_gateway_dnat_rules  = { for k, v in var.nat_gateway_dnat_rules : k => v }
   security_groups         = { for k, v in var.security_groups : v.name => v.delete_default_rules }
   ingress_rules           = { for k, v in var.security_groups : v.name => v.ingress_rules }
@@ -58,8 +58,8 @@ resource "huaweicloud_nat_snat_rule" "this" {
   for_each = local.nat_gateway_snat_rules
 
   nat_gateway_id = huaweicloud_nat_gateway.this.id
-  floating_ip_id = huaweicloud_vpc_eip.this[each.key].id
-  subnet_id      = huaweicloud_vpc_subnet.this[each.value].id
+  subnet_id      = huaweicloud_vpc_subnet.this[each.key].id
+  floating_ip_id = huaweicloud_vpc_eip.this[each.value].id
 }
 
 resource "huaweicloud_nat_dnat_rule" "this" {
@@ -81,7 +81,7 @@ resource "huaweicloud_networking_secgroup" "this" {
 }
 
 resource "huaweicloud_networking_secgroup_rule" "ingress" {
-  for_each = tomap({ for k, v in local.ingress_rules_list : k => v })
+  for_each = { for k, v in local.ingress_rules_list : k => v }
 
   security_group_id = huaweicloud_networking_secgroup.this[each.value.name].id
   direction         = "ingress"
@@ -93,7 +93,7 @@ resource "huaweicloud_networking_secgroup_rule" "ingress" {
 }
 
 resource "huaweicloud_networking_secgroup_rule" "egress" {
-  for_each = tomap({ for k, v in local.egress_rules_list : k => v })
+  for_each = { for k, v in local.egress_rules_list : k => v }
 
   security_group_id = huaweicloud_networking_secgroup.this[each.value.name].id
   direction         = "egress"
