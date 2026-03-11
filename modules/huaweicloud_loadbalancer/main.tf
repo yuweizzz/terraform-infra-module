@@ -1,12 +1,13 @@
 locals {
-  lb_name            = var.name
-  lb_bandwidth       = var.bandwidth
-  lb_vpc_id          = var.vpc_id
-  lb_subnet_id       = var.subnet_id
-  lb_backend_subnets = var.backend_subnets
-  ip_groups          = { for k, v in var.ip_groups : v.name => v }
-  lb_listeners       = { for k, v in var.listeners : v.port => v }
-  lb_backend_pools   = { for k, v in var.backend_pools : v.name => v }
+  lb_name               = var.name
+  lb_bandwidth          = var.bandwidth
+  lb_vpc_id             = var.vpc_id
+  lb_subnet_id          = var.subnet_id
+  lb_availability_zones = var.availability_zones
+  lb_backend_subnets    = var.backend_subnets
+  ip_groups             = { for k, v in var.ip_groups : v.name => v }
+  lb_listeners          = { for k, v in var.listeners : v.port => v }
+  lb_backend_pools      = { for k, v in var.backend_pools : v.name => v }
   lb_pool_members = flatten([
     for k, v in var.backend_pools : [
       for i, j in v.members : merge({ pool_name = v.name }, j)
@@ -33,19 +34,14 @@ resource "huaweicloud_vpc_eip" "this" {
   }
 }
 
-data "huaweicloud_availability_zones" "this" {}
-
 resource "huaweicloud_elb_loadbalancer" "this" {
   name           = local.lb_name
   vpc_id         = local.lb_vpc_id
   ipv4_subnet_id = local.lb_subnet_id
   ipv4_eip_id    = huaweicloud_vpc_eip.this.id
 
-  availability_zone = [
-    data.huaweicloud_availability_zones.this.names[0],
-    data.huaweicloud_availability_zones.this.names[1]
-  ]
-  backend_subnets = local.lb_backend_subnets
+  availability_zone = local.lb_availability_zones
+  backend_subnets   = local.lb_backend_subnets
 }
 
 resource "huaweicloud_elb_ipgroup" "this" {

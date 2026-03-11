@@ -1,11 +1,12 @@
 locals {
-  name              = var.name
-  vpc_id            = var.vpc_id
-  connect_subnet    = var.subnet_id
-  local_subnets     = var.local_subnet_cidrs
-  peer_subnets      = var.peer_subnet_cidrs
-  eip_bandwidth     = var.eip_bandwidth
-  customer_gateways = { for k, v in var.customer_gateways : v.name => v }
+  name               = var.name
+  vpc_id             = var.vpc_id
+  connect_subnet     = var.subnet_id
+  local_subnets      = var.local_subnet_cidrs
+  peer_subnets       = var.peer_subnet_cidrs
+  eip_bandwidth      = var.eip_bandwidth
+  availability_zones = var.availability_zones
+  customer_gateways  = { for k, v in var.customer_gateways : v.name => v }
 }
 
 resource "huaweicloud_vpc_eip" "this" {
@@ -23,22 +24,14 @@ resource "huaweicloud_vpc_eip" "this" {
   }
 }
 
-data "huaweicloud_vpn_gateway_availability_zones" "az" {
-  flavor          = "professional1"
-  attachment_type = "vpc"
-}
-
 resource "huaweicloud_vpn_gateway" "this" {
-  name            = local.name
-  network_type    = "public"
-  attachment_type = "vpc"
-  vpc_id          = local.vpc_id
-  connect_subnet  = local.connect_subnet
-  local_subnets   = local.local_subnets
-  availability_zones = [
-    data.huaweicloud_vpn_gateway_availability_zones.az.names[0],
-    data.huaweicloud_vpn_gateway_availability_zones.az.names[1]
-  ]
+  name               = local.name
+  network_type       = "public"
+  attachment_type    = "vpc"
+  vpc_id             = local.vpc_id
+  connect_subnet     = local.connect_subnet
+  local_subnets      = local.local_subnets
+  availability_zones = local.availability_zones
   eip1 {
     id = huaweicloud_vpc_eip.this[0].id
   }

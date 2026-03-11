@@ -1,24 +1,14 @@
-terraform {
-  required_providers {
-    huaweicloud = {
-      source  = "huaweicloud/huaweicloud"
-      version = ">= 1.36.0"
-    }
-  }
-}
-
 locals {
-  rds_name           = var.rds_name
-  rds_flavor_id      = var.rds_flavor_id
-  rds_vpc_id         = var.rds_vpc_id
-  rds_subnet_id      = var.rds_subnet_id
-  rds_security_group = var.rds_security_group
-  rds_password       = var.rds_password
-  rds_storage_size   = var.rds_storage_size
-  rds_timezone       = var.rds_timezone
+  rds_name               = var.name
+  rds_flavor_id          = var.flavor_id
+  rds_vpc_id             = var.vpc_id
+  rds_subnet_id          = var.subnet_id
+  rds_security_group     = var.security_group
+  rds_password           = var.password
+  rds_storage_size       = var.storage_size
+  rds_timezone           = var.timezone
+  rds_availability_zones = var.availability_zones
 }
-
-data "huaweicloud_availability_zones" "this" {}
 
 resource "huaweicloud_rds_instance" "this" {
   name              = local.rds_name
@@ -26,10 +16,8 @@ resource "huaweicloud_rds_instance" "this" {
   vpc_id            = local.rds_vpc_id
   subnet_id         = local.rds_subnet_id
   security_group_id = local.rds_security_group
-  availability_zone = [
-    data.huaweicloud_availability_zones.this.names[0]
-  ]
-  time_zone = local.rds_timezone
+  availability_zone = local.rds_availability_zones
+  time_zone         = local.rds_timezone
 
   db {
     type     = "MySQL"

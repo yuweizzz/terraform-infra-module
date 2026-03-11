@@ -38,3 +38,8 @@ variable "customer_gateways" {
     eip_index  = number
   }))
 }
+
+variable "availability_zones" {
+  description = "availability zones of vpn gateway"
+  type        = list(string)
+}

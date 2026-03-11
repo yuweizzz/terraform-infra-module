@@ -23,6 +23,11 @@ variable "backend_subnets" {
   type        = list(string)
 }
 
+variable "availability_zones" {
+  description = "availability zones of elb"
+  type        = list(string)
+}
+
 variable "ip_groups" {
   description = "ip groups for access control"
   type = list(

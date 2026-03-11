@@ -6,6 +6,8 @@ locals {
   region = "ap-southeast-1"
 }
 
+data "huaweicloud_availability_zones" "az" {}
+
 module "huaweicloud_network" {
   source = "../../modules/huaweicloud_network"
 
@@ -72,14 +74,20 @@ module "huaweicloud_network" {
   ]
 }
 
+data "huaweicloud_images_image" "debian" {
+  name = "Debian 12.0.0 64bit"
+}
+
 module "huaweicloud_ecs" {
   source = "../../modules/huaweicloud_ecs"
 
-  instance_name    = "instance_1"
-  admin_pass       = file("${path.module}/secrets/ecs_passwd")
-  root_volume_size = 50
-  instance_type    = "t6.large.2"
-  subnet_id        = module.huaweicloud_network.subnet_ids["subnet_private"]
+  instance_name     = "instance_1"
+  admin_pass        = file("${path.module}/secrets/ecs_passwd")
+  root_volume_size  = 50
+  instance_type     = "t6.large.2"
+  subnet_id         = module.huaweicloud_network.subnet_ids["subnet_private"]
+  image_id          = data.huaweicloud_images_image.debian.id
+  availability_zone = data.huaweicloud_availability_zones.az.names[0]
   security_groups = [
     module.huaweicloud_network.security_group_ids["sg_ssh"]
   ]
@@ -88,31 +96,37 @@ module "huaweicloud_ecs" {
 module "huaweicloud_rds" {
   source = "../../modules/huaweicloud_rds"
 
-  rds_name           = "instance_1"
-  rds_flavor_id      = "rds.mysql.n1.large.4"
-  rds_password       = file("${path.module}/secrets/rds_password")
-  rds_storage_size   = 50
-  rds_vpc_id         = module.huaweicloud_network.vpc_id
-  rds_subnet_id      = module.huaweicloud_network.subnet_ids["subnet_private"]
-  rds_security_group = module.huaweicloud_network.security_group_ids["sg_rds"]
-  # rds_timezone = "UTC+08:00"
+  name           = "instance_1"
+  flavor_id      = "rds.mysql.n1.large.4"
+  password       = file("${path.module}/secrets/rds_password")
+  storage_size   = 50
+  vpc_id         = module.huaweicloud_network.vpc_id
+  subnet_id      = module.huaweicloud_network.subnet_ids["subnet_private"]
+  security_group = module.huaweicloud_network.security_group_ids["sg_rds"]
+  availability_zones = [
+    data.huaweicloud_availability_zones.az.names[0]
+  ]
+  # timezone = "UTC+08:00"
 }
 
 module "huaweicloud_dcs" {
   source = "../../modules/huaweicloud_dcs"
 
-  dcs_name      = "instance_1"
-  dcs_vpc_id    = module.huaweicloud_network.vpc_id
-  dcs_subnet_id = module.huaweicloud_network.subnet_ids["subnet_private"]
-  dcs_flavor_id = "redis.single.xu1.large.4"
-  dcs_capacity  = 4
-  dcs_password  = file("${path.module}/secrets/dcs_passwd")
-  dcs_whitelist = {
+  name      = "instance_1"
+  vpc_id    = module.huaweicloud_network.vpc_id
+  subnet_id = module.huaweicloud_network.subnet_ids["subnet_private"]
+  flavor_id = "redis.single.xu1.large.4"
+  capacity  = 4
+  password  = file("${path.module}/secrets/dcs_passwd")
+  whitelist = {
     group_name = "ecs"
     ip_address = [
       module.huaweicloud_ecs.access_ip_v4,
     ]
   }
+  availability_zones = [
+    data.huaweicloud_availability_zones.az.names[0]
+  ]
 }
 
 module "huaweicloud_obs" {
@@ -139,6 +153,10 @@ module "huaweicloud_loadbalancer" {
   subnet_id = module.huaweicloud_network.subnet_ids["subnet_elb"]
   backend_subnets = [
     module.huaweicloud_network.subnet_ids["subnet_private"]
+  ]
+  availability_zones = [
+    data.huaweicloud_availability_zones.az.names[0],
+    data.huaweicloud_availability_zones.az.names[1]
   ]
 
   backend_pools = [
@@ -205,6 +223,11 @@ module "huaweicloud_loadbalancer" {
   ]
 }
 
+data "huaweicloud_vpn_gateway_availability_zones" "az" {
+  flavor          = "professional1"
+  attachment_type = "vpc"
+}
+
 module "huaweicloud_vpn_gateway" {
   source = "../../modules/huaweicloud_vpn_gateway"
 
@@ -213,6 +236,10 @@ module "huaweicloud_vpn_gateway" {
   subnet_id          = module.huaweicloud_network.subnet_ids["subnet_elb"]
   local_subnet_cidrs = ["10.1.1.0/24"]
   peer_subnet_cidrs  = ["10.11.0.0/16"]
+  availability_zones = [
+    data.huaweicloud_vpn_gateway_availability_zones.az.names[0],
+    data.huaweicloud_vpn_gateway_availability_zones.az.names[1]
+  ]
 
   customer_gateways = [
     {

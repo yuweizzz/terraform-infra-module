@@ -9,9 +9,8 @@ variable "instance_type" {
 }
 
 variable "image_id" {
-  description = "image id of ecs instance, use debian12 as default value"
+  description = "image id of ecs instance"
   type        = string
-  default     = null
 }
 
 variable "subnet_id" {
@@ -34,4 +33,9 @@ variable "security_groups" {
 variable "root_volume_size" {
   description = "root volume size of ecs instance"
   type        = number
+}
+
+variable "availability_zone" {
+  description = "availability zone of ecs instance"
+  type        = string
 }
