@@ -22,6 +22,12 @@ variable "request_domain_name" {
   default     = null
 }
 
+variable "request_cloudflare_zone_id" {
+  description = "cloudflare zone id to request"
+  type        = string
+  default     = null
+}
+
 variable "request_subject_alternative_names" {
   description = "subject alternative names to request"
   type        = list(string)

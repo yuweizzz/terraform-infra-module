@@ -5,16 +5,13 @@ locals {
   master_username                    = var.master_username
   master_password                    = var.master_password
   subnet_group                       = var.subnet_group
+  availability_zones                 = var.availability_zones
   cluster_instance_type              = var.cluster_instance_type
   cluster_instance_num               = var.cluster_instance_num
   cluster_instance_prefix            = var.cluster_instance_prefix
   enabled_parameter_group_initialize = var.enabled_parameter_group_initialize
   cluster_parameter_group_name       = var.cluster_parameter_group_name
   instance_parameter_group_name      = var.instance_parameter_group_name
-}
-
-data "aws_availability_zones" "this" {
-  state = "available"
 }
 
 resource "aws_db_subnet_group" "this" {
@@ -72,7 +69,7 @@ resource "aws_db_parameter_group" "this" {
 
 resource "aws_rds_cluster" "this" {
   cluster_identifier              = local.cluster_identifier
-  availability_zones              = data.aws_availability_zones.this.names
+  availability_zones              = local.availability_zones
   engine                          = local.engine
   engine_version                  = local.engine_version
   master_username                 = local.master_username

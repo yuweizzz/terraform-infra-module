@@ -6,6 +6,10 @@ locals {
   region = "ap-southeast-1"
 }
 
+data "aws_availability_zones" "az" {
+  state = "available"
+}
+
 module "aws_network" {
   source = "../../modules/aws_network"
 
@@ -42,21 +46,59 @@ module "aws_network" {
   ]
 }
 
+data "aws_ami" "debian" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["debian-13-amd64-*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+
 module "aws_ec2" {
   source = "../../modules/aws_ec2"
 
-  ec2_instance_name      = "ec2_001"
-  ec2_instance_type      = "t3.medium"
-  ec2_root_volume_size   = 50
-  ec2_import_key         = "ec2_key"
-  ec2_import_key_content = file("${path.module}/secrets/ec2_key.pub")
-  ec2_subnet_id          = module.aws_network.private_subnet_ids["ap-southeast-1a"]
-  ec2_security_groups = [
+  instance_name      = "ec2_001"
+  instance_type      = "t3.medium"
+  ami_id             = data.aws_ami.debian.id
+  root_volume_size   = 50
+  import_key_name    = "ec2_key"
+  import_key_content = file("${path.module}/secrets/ec2_key.pub")
+  subnet_id          = module.aws_network.private_subnet_ids["ap-southeast-1a"]
+  # associate_public_ip_address = true
+  security_groups = [
     module.aws_network.security_group_ids["sg_ssh"]
   ]
+}
 
-  # ec2_specified_key = "ec2_key"
-  # ec2_associate_public_ip_address = true
+# data "aws_key_pair" "key" {
+#   filter {
+#     name   = "key-name"
+#     values = ["ec2_key"]
+#   }
+# }
+
+module "aws_ec2_small" {
+  source = "../../modules/aws_ec2"
+
+  instance_name    = "ec2_002"
+  instance_type    = "t3.small"
+  ami_id           = data.aws_ami.debian.id
+  root_volume_size = 50
+  # specified_key_id = data.aws_key_pair.key[0].id
+  specified_key_id = module.aws_ec2.ec2_key_id
+  subnet_id        = module.aws_network.private_subnet_ids["ap-southeast-1a"]
+  security_groups = [
+    module.aws_network.security_group_ids["sg_ssh"]
+  ]
 }
 
 module "aws_net_lb" {
@@ -144,11 +186,18 @@ module "aws_cert_import" {
 }
 
 # request cert
+data "cloudflare_zone" "selected" {
+  filter = {
+    name = "host.com"
+  }
+}
+
 module "aws_cert_request" {
   source = "../../modules/aws_certificate"
 
   request_dns_provider              = "cloudflare"
   request_domain_name               = "host.com"
+  request_cloudflare_zone_id        = data.cloudflare_zone.selected.zone_id
   request_subject_alternative_names = ["host.com", "*.host.com"]
 }
 
@@ -196,6 +245,7 @@ module "aws_rds" {
       module.aws_network.private_subnet_ids["ap-southeast-1c"],
     ]
   }
+  availability_zones      = data.aws_availability_zones.az.names
   cluster_instance_type   = "db.t4g.medium"
   cluster_instance_num    = 2
   cluster_instance_prefix = "db"
@@ -215,6 +265,7 @@ module "aws_rds_small" {
   subnet_group = {
     name = "private-subnet"
   }
+  availability_zones      = data.aws_availability_zones.az.names
   cluster_instance_type   = "db.t4g.small"
   cluster_instance_num    = 1
   cluster_instance_prefix = "db"

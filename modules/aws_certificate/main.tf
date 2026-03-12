@@ -3,6 +3,7 @@ locals {
   import_certificate_body           = var.import_certificate_body
   import_certificate_chain          = var.import_certificate_chain
   request_domain_name               = var.request_domain_name
+  request_cloudflare_zone_id        = var.request_cloudflare_zone_id
   request_subject_alternative_names = var.request_subject_alternative_names
   request_dns_provider              = var.request_dns_provider
   domain_validation = {
@@ -27,18 +28,10 @@ resource "aws_acm_certificate" "this" {
   }
 }
 
-data "cloudflare_zone" "selected" {
-  count = local.request_dns_provider == "cloudflare" && local.request_domain_name != null ? 1 : 0
-
-  filter = {
-    name = local.request_domain_name
-  }
-}
-
 resource "cloudflare_dns_record" "this" {
   count = local.request_dns_provider == "cloudflare" && local.request_domain_name != null ? 1 : 0
 
-  zone_id = data.cloudflare_zone.selected[0].zone_id
+  zone_id = local.request_cloudflare_zone_id
   name    = local.domain_validation[local.request_domain_name].name
   ttl     = 600
   type    = local.domain_validation[local.request_domain_name].type

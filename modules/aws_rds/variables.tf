@@ -37,6 +37,11 @@ variable "subnet_group" {
   })
 }
 
+variable "availability_zones" {
+  description = "availability zones of rds cluster"
+  type        = list(string)
+}
+
 variable "cluster_instance_type" {
   description = "cluster instance type of rds cluster"
   type        = string
