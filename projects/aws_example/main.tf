@@ -280,7 +280,8 @@ module "aws_rds_small" {
 module "aws_s3_private" {
   source = "../../modules/aws_s3"
 
-  bucket_name = "s3-private"
+  bucket_name  = "s3-private"
+  create_queue = true
 }
 
 module "aws_s3_public" {

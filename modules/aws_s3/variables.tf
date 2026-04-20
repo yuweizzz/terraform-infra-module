@@ -8,3 +8,9 @@ variable "allow_public_read" {
   type        = bool
   default     = false
 }
+
+variable "create_queue" {
+  description = "create sqs queue or not when create s3 bucket, default is false"
+  type        = bool
+  default     = false
+}
