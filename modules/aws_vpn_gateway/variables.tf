@@ -13,22 +13,25 @@ variable "route_propagation_table_ids" {
   type        = list(string)
 }
 
-variable "local_subnet_cidr" {
-  description = "local subnet cidr of vpn gateway"
-  type        = string
+variable "customer_gateways" {
+  description = "customer gateway"
+  type = list(object({
+    name       = string
+    ip_address = string
+    bgp_asn    = optional(number, 65000)
+  }))
+  default = []
 }
 
-variable "peer_subnet_cidr" {
-  description = "remote subnet cidr of vpn gateway"
-  type        = string
-}
-
-variable "customer_gateway_name" {
-  description = "name of customer gateway"
-  type        = string
-}
-
-variable "customer_gateway_ip_address" {
-  description = "ip address of customer gateway"
-  type        = string
+variable "vpn_connections" {
+  description = "vpn connection"
+  type = list(object({
+    name                     = string
+    customer_gateway_name    = string
+    local_ipv4_network_cidr  = optional(string)
+    remote_ipv4_network_cidr = optional(string)
+    static_routes_only       = optional(bool, false)
+    destination_cidr_block   = optional(list(string), [])
+  }))
+  default = []
 }

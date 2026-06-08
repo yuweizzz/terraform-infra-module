@@ -18,6 +18,7 @@ Terraform plan work fine:
 - [aws_network](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_network)
 - [aws_rds](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_rds)
 - [aws_s3](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_s3)
+- [aws_vpn_gateway](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/aws_vpn_gateway)
 - [huaweicloud_certificate](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/huaweicloud_certificate)
 - [huaweicloud_dcs](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/huaweicloud_dcs)
 - [huaweicloud_ecs](https://github.com/yuweizzz/terraform-infra-module/tree/main/modules/huaweicloud_ecs)

@@ -1,15 +1,10 @@
-output "tunnel1_address" {
-  value = try(aws_vpn_connection.this.tunnel1_address, null)
-}
-
-output "tunnel1_preshared_key" {
-  value = try(aws_vpn_connection.this.tunnel1_preshared_key, null)
-}
-
-output "tunnel2_address" {
-  value = try(aws_vpn_connection.this.tunnel2_address, null)
-}
-
-output "tunnel2_preshared_key" {
-  value = try(aws_vpn_connection.this.tunnel2_preshared_key, null)
+output "vpn_connections" {
+  value = try({
+    for k, v in aws_vpn_connection.this : k => {
+      tunnel1_address       = v.tunnel1_address
+      tunnel1_preshared_key = v.tunnel1_preshared_key
+      tunnel2_address       = v.tunnel2_address
+      tunnel2_preshared_key = v.tunnel2_preshared_key
+    }
+  }, null)
 }
