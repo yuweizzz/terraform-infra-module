@@ -35,6 +35,16 @@ resource "alicloud_log_store_index" "this" {
 , '";=()[\",\"]{}?@&<>/:\n\t\r
 EOF
   }
+  #   field_search {
+  #     case_sensitive   = false
+  #     enable_analytics = true
+  #     include_chinese  = false
+  #     name             = "content"
+  #     token            = <<EOF
+  # , '";=()[\",\"]{}?@&<>/:\n\t\r
+  # EOF
+  #     type             = "text"
+  #   }
 }
 
 resource "alicloud_log_machine_group" "this" {
